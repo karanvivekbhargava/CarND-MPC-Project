@@ -5,6 +5,24 @@ Self-Driving Car Engineer Nanodegree Program
 ## Implementation
 
 ### The Model
+We form the state of the model using the following:
+1. x position
+2. y position
+3. The orientation of the vehicle (psi)
+4. Velocity of the vehicle (v)
+5. Cross track error (cte)
+6. Orientation error (epsi)
+
+The program uses a bicycle model for the vehicle and the following equations describe its kinematics:
+```
+      // x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+      // y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+      // psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+      // v_[t+1] = v[t] + a[t] * dt
+      // cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+      // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+```
+This model is non-linear and omits any effect of forces like friction, inertia, skidding etc. In the above equations `x_, y_` represent position coordinates. The `psi` denotes the heading direction of the vehicle i.e. its orientation. `v` denotes the velocity of the vehicle and `Lf` denotes the distance between the front wheels and the center of mass. A larger value of `Lf` means that the vehicle would turn sluggishly. `a` denotes the throttle to the vehicle (accelerator/ brake). `delta` is the control signal to change the heading direction. `cte` and `epsi` denote the cross track error and orientation error respectively.
 
 ### Timestep Length and Elapsed Duration (N & dt)
 
