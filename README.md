@@ -22,11 +22,19 @@ The program uses a bicycle model for the vehicle and the following equations des
       // cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
       // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
 ```
-This model is non-linear and omits any effect of forces like friction, inertia, skidding etc. In the above equations `x_, y_` represent position coordinates. The `psi` denotes the heading direction of the vehicle i.e. its orientation. `v` denotes the velocity of the vehicle and `Lf` denotes the distance between the front wheels and the center of mass. A larger value of `Lf` means that the vehicle would turn sluggishly. `a` denotes the throttle to the vehicle (accelerator/ brake). `delta` is the control signal to change the heading direction. `cte` and `epsi` denote the cross track error and orientation error respectively.
+This model is non-linear and omits any effect of forces like friction, inertia, skidding etc. In the above equations `x_, y_` represent position coordinates. The `psi` denotes the heading direction of the vehicle i.e. its orientation. `v` denotes the velocity of the vehicle and `Lf` denotes the distance between the front wheels and the center of mass. A larger value of `Lf` means that the vehicle would turn sluggishly. `a` denotes the control signal throttle to the vehicle (accelerator/ brake). `delta` is the control signal to change the heading direction. `cte` and `epsi` denote the cross track error and orientation error respectively.
 
 ### Timestep Length and Elapsed Duration (N & dt)
+The prediction horizon is defined as N*dt where N is the number of steps and dt is the time step duration.
+While choosing appropriate values for N and dt we need to ensure two things, maximize the prediction horizon and make it computationally tractable. We need to find the sweet spot when its not too slow nor the prediction horizon is too small. After experimenting with values like `N = 10, dt = 0.01`, `N = 10, dt = 0.1` however after trial and error I finally settled on `N = 8 and dt = 0.08` since it provided the right tradeoff.
 
 ### Polynomial Fitting and MPC Preprocessing
+To perform any computation we first need to convert everything into the vehicles coordinate system. This can be done with a translation and rotation. The equations below show the conversion into the vehicles coordinate system.
+```
+ X' =   cos(psi) * (ptsx[i] - px) + sin(psi) * (ptsy[i] - py);
+ Y' =  -sin(psi) * (ptsx[i] - px) + cos(psi) * (ptsy[i] - py); 
+```
+We then fit these `X', Y'` with the `polyfit` function to yield a third order polynomial.
 
 ### Model Predictive Control with Latency
 
