@@ -144,8 +144,8 @@ int main() {
           msgJson["mpc_y"] = mpc.mpc_y;
 
           // Display reference line
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
+          msgJson["next_x"] = nx;
+          msgJson["next_y"] = ny;
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
