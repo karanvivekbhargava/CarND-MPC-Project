@@ -7,7 +7,7 @@
 using namespace std;
 
 // TODO: Set the timestep length and duration
-const size_t N = 10; // timesteps
+const size_t N = 8; // timesteps
 const double dt = 0.08; // in seconds
 
 // This value assumes the model presented in the classroom is used.
@@ -23,7 +23,7 @@ const double dt = 0.08; // in seconds
 const double Lf = 2.67;
 
 // Additional variable declarations to ease calculations
-const double ref_v = 100.0;
+const double ref_v = 150.0;
 const size_t x_start = 0;
 const size_t y_start = x_start + N;
 const size_t psi_start = y_start + N;
