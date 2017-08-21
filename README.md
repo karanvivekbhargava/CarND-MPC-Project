@@ -44,11 +44,11 @@ x = v * dt;
 y = 0.0;
 psi = -v * steer / Lf * dt;
 cte += (v * sin(epsi) * dt);
-epsi -= v * steer / Lf * latency;
-v += throttle * latency;
+epsi -= v * steer / Lf * dt;
+v += throttle * dt;
 state << px, py, psi, v, cte, epsi;
 ```
-
+(Switched the sign for the simulator steering angles)
 ---
 ## Dependencies
 
