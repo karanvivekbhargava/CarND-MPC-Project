@@ -82,54 +82,55 @@ int main() {
         string event = j[0].get<string>();
         if (event == "telemetry") {
           // j[1] is the data JSON object
+          // Get all the values in an easy to understand format
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-          double steer = j[1]["steering_angle"];
-          double throttle = j[1]["throttle"];
+          double delta = j[1]["steering_angle"];
+          double a = j[1]["throttle"];
           double cos_phi = cos(psi);
           double sin_phi = sin(psi);
 
-          // Reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          // Reference line (next x and y values)
+          vector<double> nx;
+          vector<double> ny;
 
-          // Convert from map coordinates to vehicle coordinates
+          // Translation and rotation to convert into the vehicles coordinate system
           for (unsigned int i = 0; i < ptsx.size(); i++) {
-            double delta_x = ptsx[i] - px;
-            double delta_y = ptsy[i] - py;
-            next_x_vals.push_back(cos_phi * delta_x + sin_phi * delta_y);
-            next_y_vals.push_back(cos_phi * delta_y - sin_phi * delta_x);
+            double dx = ptsx[i] - px;
+            double dy = ptsy[i] - py;
+            nx.push_back( cos_phi * dx + sin_phi * dy);
+            ny.push_back(-sin_phi * dx + cos_phi * dy);
           }
 
-          // Polynomial Fit
-          Eigen::VectorXd ptsx_wrt_car = Eigen::VectorXd::Map(next_x_vals.data(), next_x_vals.size());
-          Eigen::VectorXd ptsy_wrt_car = Eigen::VectorXd::Map(next_y_vals.data(), next_y_vals.size());
-          auto coeffs = polyfit(ptsx_wrt_car, ptsy_wrt_car, 3);
+          // Fit the third degree polynomial on the x and y values
+          Eigen::VectorXd fitx = Eigen::VectorXd::Map(nx.data(), nx.size());
+          Eigen::VectorXd fity = Eigen::VectorXd::Map(ny.data(), ny.size());
+          auto coeffs = polyfit(fitx, fity, 3);
 
-          // errors in the current car position
+          // Calculate the errors
           double cte = polyeval(coeffs, 0);
           double epsi = -atan(coeffs[1]);
 
-          // Create state vector with latency of 0.1 sec
+          // find the state after 100 ms
           Eigen::VectorXd state(6);
-          double latency = 0.1; //add a latency of 100ms
-          px = v * latency;
+          double dt = 0.1; // in seconds
+          px = v * dt;
           py = 0.0;
-          psi = -v * steer / Lf * latency;
-          cte = cte + (v * sin(epsi) * latency);
-          epsi = epsi - v * steer / Lf * latency;
-          v = v + throttle * latency;
+          psi = -v * delta / Lf * dt;
+          cte += (v * sin(epsi) * dt);
+          epsi -= v * delta / Lf * dt;
+          v += a * dt;
           state << px, py, psi, v, cte, epsi;
 
-          // Solve the MPC
+          // Solve the MPC with the delayed state and the polynomial found earlier
           auto result = mpc.Solve(state, coeffs);
 
-          // Compute steering and angle value
-          double steer_value = -result[0] / deg2rad(25); // normalize
+          // Calculate steering and angle value
+          double steer_value = -result[0] / deg2rad(25);
           double throttle_value = result[1];
 
           cout << "Controls:: Steer:" << steer_value << "\t" << "Throttle:" << throttle_value << endl;
@@ -138,18 +139,13 @@ int main() {
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
-
-
           //Display the MPC predicted trajectory
-          vector<double> mpc_x_vals = mpc.mpc_x;
-          vector<double> mpc_y_vals = mpc.mpc_y;
-          msgJson["mpc_x"] = mpc_x_vals;
-          msgJson["mpc_y"] = mpc_y_vals;
+          msgJson["mpc_x"] = mpc.mpc_x;
+          msgJson["mpc_y"] = mpc.mpc_y;
 
           // Display reference line
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
-
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
