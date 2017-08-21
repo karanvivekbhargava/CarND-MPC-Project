@@ -2,6 +2,9 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+## Introduction
+In this project I've implemented Model Predictive Control to drive the car around the track. This time however we're not given the cross track error, so I've calculated it myself! Additionally, there's a 100 millisecond latency between actuations commands on top of the connection latency.
+
 ## Implementation
 
 ### The Model
