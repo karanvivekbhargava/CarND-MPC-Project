@@ -1,6 +1,10 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
+<p align="center">
+[mpc_vid-2.gif](mpc_vid-2.gif)
+</p>
+
 ---
 ## Introduction
 In this project I've implemented Model Predictive Control to drive the car around the track. This time however we're not given the cross track error, so I've calculated it myself! Additionally, there's a 100 millisecond latency between actuations commands on top of the connection latency.
