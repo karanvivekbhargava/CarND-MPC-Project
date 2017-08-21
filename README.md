@@ -29,7 +29,7 @@ The prediction horizon is defined as N*dt where N is the number of steps and dt 
 While choosing appropriate values for N and dt we need to ensure two things, maximize the prediction horizon and make it computationally tractable. We need to find the sweet spot when its not too slow nor the prediction horizon is too small. After experimenting with values like `N = 10, dt = 0.01`, `N = 10, dt = 0.1` however after trial and error I finally settled on `N = 8 and dt = 0.08` since it provided the right tradeoff.
 
 ### Polynomial Fitting and MPC Preprocessing
-To perform any computation we first need to convert everything into the vehicles coordinate system. This can be done with a translation and rotation. The equations below show the conversion into the vehicles coordinate system.
+To perform any computation we first need to convert everything into the vehicles coordinate system. This can be done with a translation and rotation. The translation is to the point `px, py`. Then it's rotated with `psi` which is the orientation of the vehicle. The equations below show the conversion into the vehicles coordinate system.
 ```
  X' =   cos(psi) * (ptsx[i] - px) + sin(psi) * (ptsy[i] - py);
  Y' =  -sin(psi) * (ptsx[i] - px) + cos(psi) * (ptsy[i] - py); 
@@ -37,6 +37,17 @@ To perform any computation we first need to convert everything into the vehicles
 We then fit these `X', Y'` with the `polyfit` function to yield a third order polynomial.
 
 ### Model Predictive Control with Latency
+The simple solution to model the latency is to assume that the vehicle has moved by the latency according to the bicycle model. Once we have the state of the vehicle in the future, we can apply the MPC to get the appropriate control signals. The equations we need to follow to implement the MPC with latency are as follows:
+```
+Let dt be the latency
+x = v * dt;
+y = 0.0;
+psi = -v * steer / Lf * dt;
+cte += (v * sin(epsi) * dt);
+epsi -= v * steer / Lf * latency;
+v += throttle * latency;
+state << px, py, psi, v, cte, epsi;
+```
 
 ---
 ## Dependencies
